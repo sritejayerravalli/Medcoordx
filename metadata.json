@@ -1,0 +1,5 @@
+{
+  "name": "MedCoordX",
+  "description": "Real-Time Hospital Resource Routing System with AI-powered triage and smart hospital matching.",
+  "requestFramePermissions": ["geolocation"]
+}
