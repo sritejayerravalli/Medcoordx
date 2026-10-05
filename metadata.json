@@ -1,5 +1,6 @@
 {
   "name": "MedCoordX",
   "description": "Real-Time Hospital Resource Routing System with AI-powered triage and smart hospital matching.",
-  "requestFramePermissions": ["geolocation"]
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

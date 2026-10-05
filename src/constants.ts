@@ -1,4 +1,11 @@
-import { Hospital, Ambulance } from "./types";
+import { Hospital, Ambulance, UserLocation } from "./types";
+import { calculateDistance } from "./lib/utils";
+
+// Default fallback coordinates: New Delhi, India (AIIMS / Central NCR)
+export const DEFAULT_LOCATION: UserLocation = {
+  lat: 28.5672,
+  lng: 77.2100,
+};
 
 export const PREDEFINED_SYMPTOMS = [
   "Chest Pain",
@@ -23,8 +30,8 @@ export const MOCK_HOSPITALS: Hospital[] = [
   {
     id: "1",
     name: "AIIMS Medical Center",
-    lat: 40.7128,
-    lng: -74.0060,
+    lat: 28.5672,
+    lng: 77.2100,
     beds: 45,
     icuBeds: 12,
     specialties: ["Emergency", "Cardiology", "Neurology"],
@@ -39,92 +46,92 @@ export const MOCK_HOSPITALS: Hospital[] = [
     specialists: ["Dr. Sarah Chen (Cardiology)", "Dr. Michael Ross (Neurology)", "Dr. Elena Vance (Emergency)"],
     doctors: [
       { 
-        id: "d1", name: "Dr. Sarah Chen", specialty: "Cardiology", isAvailable: true, nextAvailableSlot: "14:00",
+        id: "d1", name: "Dr. Aditi Sharma", specialty: "Cardiology", isAvailable: true, nextAvailableSlot: "14:00",
         slots: [{ time: "14:00", available: true }, { time: "15:00", available: false }, { time: "16:00", available: true }]
       },
       { 
-        id: "d2", name: "Dr. Michael Ross", specialty: "Neurology", isAvailable: false, nextAvailableSlot: "Tomorrow 09:00",
+        id: "d2", name: "Dr. Rajesh Kumar", specialty: "Neurology", isAvailable: false, nextAvailableSlot: "Tomorrow 09:00",
         slots: [{ time: "09:00", available: false }, { time: "10:00", available: false }]
       }
     ],
     equipment: ["3T MRI Scanner", "Cardiac Cath Lab", "Advanced Ventilators"],
     reviews: [
-      { id: "r1", author: "John D.", rating: 5, comment: "Exceptional care and very fast response.", date: "2024-03-15" },
-      { id: "r2", author: "Maria S.", rating: 4, comment: "Professional staff, though the waiting area was crowded.", date: "2024-03-10" }
+      { id: "r1", author: "Arjun M.", rating: 5.0, comment: "Exceptional trauma care and very fast ambulance response.", date: "2025-02-15" },
+      { id: "r2", author: "Priya S.", rating: 4.5, comment: "Professional medical staff, well-organized emergency triage.", date: "2025-02-10" }
     ]
   },
   {
     id: "2",
     name: "Fortis Memorial Hospital",
-    lat: 40.7306,
-    lng: -73.9352,
-    beds: 12,
-    icuBeds: 4,
+    lat: 28.5450,
+    lng: 77.2732,
+    beds: 18,
+    icuBeds: 6,
     specialties: ["Pediatrics", "Emergency", "Oncology"],
     rating: 4.5,
     grade: "A",
-    facilities: ["Neonatal ICU", "Oncology Center"],
+    facilities: ["Neonatal ICU", "Oncology Center", "24/7 CT Scan"],
     avgAmbulanceResponseTime: 9,
     serviceQuality: 92,
     coordinationScore: 89,
     facilityScore: 94,
     availabilityScore: 88,
-    specialists: ["Dr. James Wilson (Oncology)", "Dr. Lisa Cuddy (Pediatrics)"],
+    specialists: ["Dr. Vikram Mehta (Oncology)", "Dr. Neha Kapoor (Pediatrics)"],
     doctors: [
       { 
-        id: "d3", name: "Dr. James Wilson", specialty: "Oncology", isAvailable: true, nextAvailableSlot: "11:30",
+        id: "d3", name: "Dr. Vikram Mehta", specialty: "Oncology", isAvailable: true, nextAvailableSlot: "11:30",
         slots: [{ time: "11:30", available: true }, { time: "12:30", available: true }]
       },
       { 
-        id: "d4", name: "Dr. Lisa Cuddy", specialty: "Pediatrics", isAvailable: true, nextAvailableSlot: "15:00",
+        id: "d4", name: "Dr. Neha Kapoor", specialty: "Pediatrics", isAvailable: true, nextAvailableSlot: "15:00",
         slots: [{ time: "15:00", available: true }, { time: "16:00", available: true }]
       }
     ],
-    equipment: ["Linear Accelerator", "Pediatric Ventilators"],
+    equipment: ["Linear Accelerator", "Pediatric Ventilators", "Digital X-Ray"],
     reviews: [
-      { id: "r3", author: "Robert K.", rating: 5, comment: "The pediatric team is amazing.", date: "2024-03-12" }
+      { id: "r3", author: "Rohan K.", rating: 4.8, comment: "The pediatric emergency team was responsive and attentive.", date: "2025-02-12" }
     ]
   },
   {
     id: "3",
     name: "Max Super Specialty",
-    lat: 40.7589,
-    lng: -73.9851,
-    beds: 5,
-    icuBeds: 2,
+    lat: 28.5284,
+    lng: 77.2116,
+    beds: 9,
+    icuBeds: 3,
     specialties: ["General Medicine", "Family Practice", "Trauma"],
-    rating: 3.9,
+    rating: 4.1,
     grade: "B",
     facilities: ["Diagnostic Lab", "Ambulance Fleet"],
-    avgAmbulanceResponseTime: 14,
-    serviceQuality: 78,
-    coordinationScore: 75,
-    facilityScore: 72,
-    availabilityScore: 68,
-    specialists: ["Dr. Gregory House (Diagnostics)", "Dr. Eric Foreman (Neurology)"],
+    avgAmbulanceResponseTime: 13,
+    serviceQuality: 81,
+    coordinationScore: 78,
+    facilityScore: 80,
+    availabilityScore: 74,
+    specialists: ["Dr. संजय Verma (Diagnostics)", "Dr. Ananya Rao (Neurology)"],
     doctors: [
       { 
-        id: "d5", name: "Dr. Gregory House", specialty: "Diagnostics", isAvailable: false, nextAvailableSlot: "Indefinite",
-        slots: [{ time: "09:00", available: false }]
+        id: "d5", name: "Dr. Sanjay Verma", specialty: "Diagnostics", isAvailable: false, nextAvailableSlot: "17:30",
+        slots: [{ time: "09:00", available: false }, { time: "17:30", available: true }]
       },
       { 
-        id: "d6", name: "Dr. Eric Foreman", specialty: "Neurology", isAvailable: true, nextAvailableSlot: "10:00",
+        id: "d6", name: "Dr. Ananya Rao", specialty: "Neurology", isAvailable: true, nextAvailableSlot: "10:00",
         slots: [{ time: "10:00", available: true }, { time: "11:00", available: true }]
       }
     ],
-    equipment: ["CT Scanner", "X-Ray Machine"],
+    equipment: ["CT Scanner", "X-Ray Machine", "Portable Ultrasound"],
     reviews: [
-      { id: "r4", author: "Linda P.", rating: 3, comment: "Decent care, but wait times were long.", date: "2024-03-08" }
+      { id: "r4", author: "Sneha P.", rating: 4.0, comment: "Good diagnostic care, though evening wait times can be busy.", date: "2025-02-08" }
     ]
   },
   {
     id: "4",
     name: "Apollo Emergency Care",
-    lat: 40.7829,
-    lng: -73.9654,
+    lat: 28.5366,
+    lng: 77.2830,
     beds: 80,
     icuBeds: 25,
-    specialties: ["Emergency", "Trauma", "Surgery"],
+    specialties: ["Emergency", "Trauma", "Surgery", "Cardiology"],
     rating: 4.9,
     grade: "A+",
     facilities: ["Level 1 Trauma Center", "Heliport", "Robotic Surgery"],
@@ -133,52 +140,52 @@ export const MOCK_HOSPITALS: Hospital[] = [
     coordinationScore: 97,
     facilityScore: 100,
     availabilityScore: 98,
-    specialists: ["Dr. Robert Chase (Surgery)", "Dr. Allison Cameron (Immunology)"],
+    specialists: ["Dr. Siddharth Nair (Surgery)", "Dr. Meera Iyer (Immunology)"],
     doctors: [
       { 
-        id: "d7", name: "Dr. Robert Chase", specialty: "Surgery", isAvailable: true, nextAvailableSlot: "08:00",
+        id: "d7", name: "Dr. Siddharth Nair", specialty: "Trauma Surgery", isAvailable: true, nextAvailableSlot: "08:00",
         slots: [{ time: "08:00", available: true }, { time: "09:00", available: true }]
       },
       { 
-        id: "d8", name: "Dr. Allison Cameron", specialty: "Immunology", isAvailable: true, nextAvailableSlot: "13:00",
-        slots: [{ time: "13:00", available: true }]
+        id: "d8", name: "Dr. Meera Iyer", specialty: "Cardiology", isAvailable: true, nextAvailableSlot: "13:00",
+        slots: [{ time: "13:00", available: true }, { time: "14:30", available: true }]
       }
     ],
-    equipment: ["Da Vinci Robotic System", "Hybrid OR"],
+    equipment: ["Da Vinci Robotic System", "Hybrid OR", "ECMO Unit"],
     reviews: [
-      { id: "r5", author: "David W.", rating: 5, comment: "Best emergency facility in the city.", date: "2024-03-20" }
+      { id: "r5", author: "Deepak W.", rating: 5.0, comment: "Best emergency trauma facility in the region.", date: "2025-02-20" }
     ]
   },
   {
     id: "5",
     name: "Medanta Medicity",
-    lat: 40.7069,
-    lng: -74.0113,
-    beds: 25,
+    lat: 28.5961,
+    lng: 77.1695,
+    beds: 28,
     icuBeds: 8,
     specialties: ["Orthopedics", "Rehabilitation", "Emergency"],
-    rating: 4.2,
+    rating: 4.4,
     grade: "A",
-    facilities: ["Rehab Gym", "Sports Medicine"],
-    avgAmbulanceResponseTime: 11,
-    serviceQuality: 85,
-    coordinationScore: 82,
-    facilityScore: 88,
-    availabilityScore: 80,
-    specialists: ["Dr. Chris Taub (Plastic Surgery)", "Dr. Remy Hadley (Internal Medicine)"],
+    facilities: ["Rehab Gym", "Sports Medicine", "Trauma Unit"],
+    avgAmbulanceResponseTime: 10,
+    serviceQuality: 88,
+    coordinationScore: 85,
+    facilityScore: 90,
+    availabilityScore: 84,
+    specialists: ["Dr. Kabir Malhotra (Orthopedics)", "Dr. Kavita Joshi (Internal Medicine)"],
     doctors: [
       { 
-        id: "d9", name: "Dr. Chris Taub", specialty: "Plastic Surgery", isAvailable: true, nextAvailableSlot: "16:00",
-        slots: [{ time: "16:00", available: true }]
+        id: "d9", name: "Dr. Kabir Malhotra", specialty: "Orthopedics", isAvailable: true, nextAvailableSlot: "16:00",
+        slots: [{ time: "16:00", available: true }, { time: "17:00", available: true }]
       },
       { 
-        id: "d10", name: "Dr. Remy Hadley", specialty: "Internal Medicine", isAvailable: false, nextAvailableSlot: "Next Week",
+        id: "d10", name: "Dr. Kavita Joshi", specialty: "Internal Medicine", isAvailable: false, nextAvailableSlot: "Tomorrow 10:00",
         slots: [{ time: "09:00", available: false }]
       }
     ],
-    equipment: ["Rehabilitation Robotics", "Hydrotherapy Pool"],
+    equipment: ["Rehabilitation Robotics", "Hydrotherapy Pool", "Digital Arthroscopy"],
     reviews: [
-      { id: "r6", author: "Susan M.", rating: 4, comment: "Great rehab facilities.", date: "2024-03-18" }
+      { id: "r6", author: "Suresh M.", rating: 4.3, comment: "Great orthopedic and rehabilitation facilities.", date: "2025-02-18" }
     ]
   },
 ];
@@ -186,32 +193,90 @@ export const MOCK_HOSPITALS: Hospital[] = [
 export const MOCK_AMBULANCES: Ambulance[] = [
   {
     id: "amb-1",
-    number: "AMB-001",
+    number: "AMB-108-A",
     status: "available",
-    responseTime: 8,
+    responseTime: 7,
     efficiency: 95,
     grade: "A+",
-    lat: 40.7128,
-    lng: -74.0060,
+    lat: 28.5720,
+    lng: 77.2150,
   },
   {
     id: "amb-2",
-    number: "AMB-002",
+    number: "AMB-108-B",
     status: "busy",
-    responseTime: 12,
+    responseTime: 11,
     efficiency: 88,
     grade: "A",
-    lat: 40.7306,
-    lng: -73.9352,
+    lat: 28.5500,
+    lng: 77.2500,
   },
   {
     id: "amb-3",
-    number: "AMB-003",
+    number: "AMB-108-C",
     status: "available",
-    responseTime: 15,
+    responseTime: 14,
     efficiency: 82,
     grade: "B",
-    lat: 40.7589,
-    lng: -73.9851,
+    lat: 28.5350,
+    lng: 77.2050,
   },
 ];
+
+// Offsets around user's real location so hospitals & ambulances are always in the user's actual city/country
+const HOSPITAL_OFFSETS = [
+  { dLat: 0.012, dLng: 0.015 },
+  { dLat: -0.018, dLng: 0.028 },
+  { dLat: -0.025, dLng: -0.014 },
+  { dLat: 0.024, dLng: -0.022 },
+  { dLat: 0.008, dLng: -0.032 },
+];
+
+const AMBULANCE_OFFSETS = [
+  { dLat: 0.006, dLng: 0.008 },
+  { dLat: -0.011, dLng: 0.014 },
+  { dLat: 0.014, dLng: -0.010 },
+];
+
+export function localizeHospitalsToUser(hospitals: Hospital[], userLocation: UserLocation): Hospital[] {
+  const distFromDefault = calculateDistance(
+    userLocation.lat,
+    userLocation.lng,
+    DEFAULT_LOCATION.lat,
+    DEFAULT_LOCATION.lng
+  );
+
+  return hospitals.map((h, idx) => {
+    const offset = HOSPITAL_OFFSETS[idx % HOSPITAL_OFFSETS.length];
+    // If user is more than 35km away from default location (or if hospital has 0,0 coordinates), anchor around userLocation
+    const shouldRelocate = distFromDefault > 35 || (h.lat === 0 && h.lng === 0);
+    const lat = shouldRelocate ? Number((userLocation.lat + offset.dLat).toFixed(6)) : h.lat;
+    const lng = shouldRelocate ? Number((userLocation.lng + offset.dLng).toFixed(6)) : h.lng;
+    const distance = calculateDistance(userLocation.lat, userLocation.lng, lat, lng);
+    return {
+      ...h,
+      lat,
+      lng,
+      distance,
+    };
+  }).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+}
+
+export function localizeAmbulancesToUser(ambulances: Ambulance[], userLocation: UserLocation): Ambulance[] {
+  const distFromDefault = calculateDistance(
+    userLocation.lat,
+    userLocation.lng,
+    DEFAULT_LOCATION.lat,
+    DEFAULT_LOCATION.lng
+  );
+  if (distFromDefault <= 35) return ambulances;
+
+  return ambulances.map((amb, idx) => {
+    const offset = AMBULANCE_OFFSETS[idx % AMBULANCE_OFFSETS.length];
+    return {
+      ...amb,
+      lat: Number((userLocation.lat + offset.dLat).toFixed(6)),
+      lng: Number((userLocation.lng + offset.dLng).toFixed(6)),
+    };
+  });
+}
